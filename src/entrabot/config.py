@@ -133,6 +133,9 @@ def _load_dotenv() -> None:
         key, _, value = line.partition("=")
         key = key.strip()
         value = value.strip()
+        # Strip one pair of matching surrounding quotes (KEY="value").
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+            value = value[1:-1]
         # Don't overwrite values already in the environment
         if key not in os.environ:
             os.environ[key] = value

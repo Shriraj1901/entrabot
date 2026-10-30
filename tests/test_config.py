@@ -263,3 +263,44 @@ class TestXpiaWrapEnableFlag:
             ):
                 cfg = EntraBotConfig.from_env()
             assert cfg.xpia_wrap_enable is True, f"Expected True for '{val}'"
+
+
+class TestLoadDotenv:
+    """``.env`` parsing: matching surrounding quotes are not part of the value."""
+
+    @staticmethod
+    def _load(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, text: str) -> None:
+        from entrabot import config
+
+        # _load_dotenv reads <repo root>/.env, located relative to config.py.
+        fake_module = tmp_path / "src" / "entrabot" / "config.py"
+        monkeypatch.setattr(config, "__file__", str(fake_module))
+        (tmp_path / ".env").write_text(text, encoding="utf-8")
+        config._load_dotenv()
+
+    @pytest.mark.parametrize(
+        ("raw", "expected"),
+        [
+            ('"abc"', "abc"),
+            ("'abc'", "abc"),
+            ("abc", "abc"),
+            ('"it\'s"', "it's"),
+            ("\"abc'", "\"abc'"),
+            ('"abc', '"abc'),
+            ('"', '"'),
+            ('""', ""),
+        ],
+    )
+    def test_surrounding_quotes(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        tmp_path: Path,
+        raw: str,
+        expected: str,
+    ) -> None:
+        monkeypatch.delenv("ENTRABOT_TEST_DOTENV", raising=False)
+        self._load(monkeypatch, tmp_path, f"ENTRABOT_TEST_DOTENV={raw}\n")
+        try:
+            assert os.environ["ENTRABOT_TEST_DOTENV"] == expected
+        finally:
+            os.environ.pop("ENTRABOT_TEST_DOTENV", None)
