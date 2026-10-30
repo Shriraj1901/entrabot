@@ -20,6 +20,7 @@
 - Self-authored Teams messages remain filtered after an Agent User display-name change.
 - Forged `<external_content>` text can no longer bypass the authoritative XPIA boundary.
 - A UTC-midnight-dependent test no longer fails intermittently on Windows CI.
+- Storage backends read and write files as UTF-8 instead of the Windows locale encoding.
 
 ### Removed
 

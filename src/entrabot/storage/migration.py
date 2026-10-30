@@ -79,7 +79,7 @@ def _migrate_one_source(
             if target.exists(key):
                 report.skipped += 1
                 continue
-            content = path.read_text()
+            content = path.read_text(encoding="utf-8")
         except Exception as exc:  # noqa: BLE001 — record + continue
             report.errors.append((key, str(exc)))
             continue

@@ -108,33 +108,33 @@ class LocalBackend:
         p = self._path(key)
         if not p.exists():
             return None
-        return p.read_text()
+        return p.read_text(encoding="utf-8")
 
     def read_text_with_etag(self, key: str) -> tuple[str | None, str | None]:
         p = self._path(key)
         if not p.exists():
             return None, None
-        content = p.read_text()
+        content = p.read_text(encoding="utf-8")
         return content, _content_etag(content)
 
     def write_text(self, key: str, content: str, *, if_match: str | None = None) -> str | None:
         p = self._path(key)
         if if_match is not None:
             # Conditional write: current content hash must equal if_match.
-            current = _content_etag(p.read_text()) if p.exists() else None
+            current = _content_etag(p.read_text(encoding="utf-8")) if p.exists() else None
             if current != if_match:
                 raise ConcurrencyError(
                     f"write_text({key!r}) refused: If-Match={if_match!r} is stale "
                     f"(current={current!r})"
                 )
         p.parent.mkdir(parents=True, exist_ok=True)
-        p.write_text(content)
+        p.write_text(content, encoding="utf-8")
         return _content_etag(content)
 
     def append_text(self, key: str, content: str) -> None:
         p = self._path(key)
         p.parent.mkdir(parents=True, exist_ok=True)
-        with open(p, "a") as fh:
+        with open(p, "a", encoding="utf-8") as fh:
             fh.write(content)
 
     def exists(self, key: str) -> bool:
